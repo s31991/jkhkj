@@ -295,6 +295,49 @@ public class EventsController : ControllerBase
 
 
 
+dotnet ef dbcontext scaffold "Server=localhost;Database=EventDb;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -o Models -f
+
+
+ builder.Services.AddDbContext<EventDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+
+
+
+
+
+
+dotnet ef migrations add InitialCreate
+dotnet ef database update
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer("YourConnectionString"));
+
+
+public class AppDbContext : DbContext
+{
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) {}
+.
+    public DbSet<Student> Students { get; set; }
+    public DbSet<Course> Courses { get; set; }
+    public DbSet<Enrollment> Enrollments { get; set; }
+.
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Enrollment>()
+            .HasKey(e => new { e.StudentId, e.CourseId });
+.
+        modelBuilder.Entity<Enrollment>()
+            .HasOne(e => e.Student)
+            .WithMany(s => s.Enrollments)
+            .HasForeignKey(e => e.StudentId);
+.
+        modelBuilder.Entity<Enrollment>()
+            .HasOne(e => e.Course)
+            .WithMany(c => c.Enrollments)
+            .HasForeignKey(e => e.CourseId);
+    }
+}
 
 
 
